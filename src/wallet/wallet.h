@@ -309,38 +309,23 @@ public:
 typedef std::map<JSOutPoint, SproutNoteData> mapSproutNoteData_t;
 typedef std::map<SaplingOutPoint, SaplingNoteData> mapSaplingNoteData_t;
 
-/** Decrypted note and its location in a transaction. */
+/** Decrypted note and its location in a transaction, and number of confirmations. */
 struct CSproutNotePlaintextEntry
 {
     JSOutPoint jsop;
     libzcash::SproutPaymentAddress address;
     libzcash::SproutNotePlaintext plaintext;
+    int confirmations;
 };
 
-/** Decrypted note, location in a transaction, and confirmation height. */
-struct CUnspentSproutNotePlaintextEntry {
-    JSOutPoint jsop;
-    libzcash::SproutPaymentAddress address;
-    libzcash::SproutNotePlaintext plaintext;
-    int nHeight;
-};
-
-/** Sapling note and its location in a transaction. */
+/** Sapling note and its location in a transaction, and number of confirmations. */
 struct SaplingNoteEntry
 {
     SaplingOutPoint op;
     libzcash::SaplingPaymentAddress address;
     libzcash::SaplingNote note;
     std::array<unsigned char, ZC_MEMO_SIZE> memo;
-};
-
-/** Sapling note, location in a transaction, and confirmation height. */
-struct UnspentSaplingNoteEntry {
-    SaplingOutPoint op;
-    libzcash::SaplingPaymentAddress address;
-    libzcash::SaplingNote note;
-    std::array<unsigned char, ZC_MEMO_SIZE> memo;
-    int nHeight;
+    int confirmations;
 };
 
 /** A transaction with a merkle branch linking it to the block chain. */
@@ -1294,23 +1279,17 @@ public:
                           std::string address,
                           int minDepth=1,
                           bool ignoreSpent=true,
-                          bool ignoreUnspendable=true);
+                          bool requireSpendingKey=true);
 
     /* Find notes filtered by payment addresses, min depth, ability to spend */
     void GetFilteredNotes(std::vector<CSproutNotePlaintextEntry>& sproutEntries,
                           std::vector<SaplingNoteEntry>& saplingEntries,
                           std::set<libzcash::PaymentAddress>& filterAddresses,
                           int minDepth=1,
+                          int maxDepth=INT_MAX,
                           bool ignoreSpent=true,
-                          bool ignoreUnspendable=true);
-    
-    /* Find unspent notes filtered by payment address, min depth and max depth */
-    void GetUnspentFilteredNotes(std::vector<CUnspentSproutNotePlaintextEntry>& sproutEntries,
-                                 std::vector<UnspentSaplingNoteEntry>& saplingEntries,
-                                 std::set<libzcash::PaymentAddress>& filterAddresses,
-                                 int minDepth=1,
-                                 int maxDepth=INT_MAX,
-                                 bool requireSpendingKey=true);
+                          bool requireSpendingKey=true,
+                          bool ignoreLocked=true);
 };
 
 /** A key allocated from the key pool. */
