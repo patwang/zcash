@@ -1,0 +1,21 @@
+makepath :=$(shell pwd)/$(lastword $(MAKEFILE_LIST))
+basepathp :=$(shell dirname $(makepath))
+basepath=$(shell dirname $(basepathp))
+
+srcdir=$(basepath)/src
+#$(warning $(srcdir))
+darwindir=$(basepath)/depends
+
+CC=g++
+CFLAGS   = -std=c++11  -fPIC -fvisibility=hidden -O3 -finline-functions -Wno-inline -Wall -pthread -m64
+
+TEST_INCLUDES = -I$(srcdir)/secp256k1/include -I$(darwindir)/x86_64-unknown-linux-gnu/include \
+-I$(srcdir) -I$(srcdir)/config -I$(srcdir)/univalue/include  -I$(srcdir)/leveldb/include  -I$(srcdir)/zcash -I/root/jdk1.8.0_171/include -I/root/jdk1.8.0_171/include/linux
+
+$(shell rm -f bitcoin-cli-ok.o)
+$(shell rm -f zcash-cli-ok.so)
+
+zcash-cli-ok.so: bitcoin-cli-ok.o  libbitcoin_cli.a libbitcoin_server.a libbitcoin_common.a univalue/.libs/libunivalue.a libbitcoin_util.a crypto/libbitcoin_crypto.a libzcash.a snark/libsnark.a ./leveldb/libleveldb.a ./leveldb/libmemenv.a secp256k1/.libs/libsecp256k1.a libbitcoin_zmq.a  libbitcoin_wallet.a       crypto/libbitcoin_crypto.a
+	@echo "  CXXSO      " ;$(CC) -shared -fPIC  -m64 -std=c++11  -Wformat -Wformat-security -Wstack-protector -fstack-protector-all -Werror  -pipe -O1 -g -fopenmp -fwrapv -fno-strict-aliasing -Wno-builtin-declaration-mismatch  -pthread   -Wl,-z,relro -Wl,-z,now  -L$(darwindir)/x86_64-unknown-linux-gnu/share/../lib  -o  zcash-cli-ok.so bitcoin-cli-ok.o  libbitcoin_cli.a libbitcoin_server.a libbitcoin_common.a univalue/.libs/libunivalue.a libbitcoin_util.a crypto/libbitcoin_crypto.a libzcash.a snark/libsnark.a ./leveldb/libleveldb.a ./leveldb/libmemenv.a secp256k1/.libs/libsecp256k1.a libbitcoin_zmq.a -L$(darwindir)/x86_64-unknown-linux-gnu/lib -lzmq -lstdc++   libbitcoin_wallet.a -L$(darwindir)/x86_64-unknown-linux-gnu/share/../lib -lboost_system -lboost_filesystem -lboost_program_options -lboost_thread -lboost_chrono -ldb_cxx-6.2 -pthread -L$(darwindir)/x86_64-unknown-linux-gnu/lib -lssl -lcrypto -ldl   -pthread -L$(darwindir)/x86_64-unknown-linux-gnu/lib -lcrypto -ldl   -L$(darwindir)/x86_64-unknown-linux-gnu/lib -levent_pthreads -levent   -L$(darwindir)/x86_64-unknown-linux-gnu/lib -levent   crypto/libbitcoin_crypto.a -lgmp -lgmpxx -lboost_system -lcrypto -lsodium -lrustzcash -ldl  -lanl
+bitcoin-cli-ok.o: bitcoin-cli-ok.cpp
+	@echo "  CXXok      " ;$(CC) $(CFLAGS) $(TEST_INCLUDES) -DHAVE_CONFIG_H -c bitcoin-cli-ok.cpp -o bitcoin-cli-ok.o
